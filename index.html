@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lo de Vero & George</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>🍕 Lo de Vero & George</h1>
+
+    <div class="header-info">
+      <p>📞 WhatsApp: 11-2321-9676</p>
+      <p>🚚 Delivery sin cargo en Villa Club</p>
+      <p>🕒 Martes a Domingo - 18:00 a 22:00 hs</p>
+      <p>💳 Alias MP: <strong>cabala.sana.sabe.mp</strong></p>
+    </div>
+
+    <input type="text" id="buscador" placeholder="🔎 Buscar producto..." />
+  </header>
+
+  <div class="container">
+    <main class="menu" id="menu">
+      <section class="menu-section" data-section="pizzas">
+        <h2>Pizzas</h2>
+        <div id="pizzas"></div>
+      </section>
+
+      <section class="menu-section" data-section="empanadas">
+        <h2>🥟 Empanadas</h2>
+        <div class="empanadas-cards">
+          <div class="emp-card">
+            <h3>Empanadas comunes</h3>
+            <p class="muted">Carne, Pollo, Jamón y Muzzarella</p>
+            <div class="emp-actions">
+              <button class="emp-btn" onclick="abrirEmpanadas('comunes', 1)">Unidad</button>
+              <button class="emp-btn" onclick="abrirEmpanadas('comunes', 6)">½ Docena</button>
+              <button class="emp-btn" onclick="abrirEmpanadas('comunes', 12)">Docena</button>
+            </div>
+                      </div>
+
+          <div class="emp-card">
+            <h3>Empanadas especiales</h3>
+            <p class="muted">Verdura y Muzzarella, Choclo y Muzzarella, Roquefort y Jamón, Capresse, Calabresa</p>
+            <div class="emp-actions">
+              <button class="emp-btn" onclick="abrirEmpanadas('especiales', 1)">Unidad</button>
+              <button class="emp-btn" onclick="abrirEmpanadas('especiales', 6)">½ Docena</button>
+              <button class="emp-btn" onclick="abrirEmpanadas('especiales', 12)">Docena</button>
+            </div>
+                      </div>
+        </div>
+      </section>
+
+      <section class="menu-section" data-section="tartas">
+        <h2>Tartas</h2>
+        <div id="tartas"></div>
+      </section>
+
+      <section class="menu-section" data-section="pastas">
+        <h2>Pastas</h2>
+        <div id="pastas"></div>
+      </section>
+
+      <section class="menu-section" data-section="minutas">
+        <h2>Minutas</h2>
+        <div id="minutas"></div>
+      </section>
+
+      <section class="menu-section" data-section="bebidas">
+        <h2>Bebidas</h2>
+        <div id="bebidas"></div>
+      </section>
+    </main>
+
+    <aside class="carrito">
+      <h2>🛒 Tu Pedido</h2>
+
+      <div id="items-carrito"></div>
+
+      <h3>
+        Total:
+        $<span id="total">0</span>
+      </h3>
+
+      <button class="emp-btn secondary" type="button" onclick="vaciarCarrito()">Vaciar carrito</button>
+
+      <hr />
+
+      <label>Nombre</label>
+      <input type="text" id="nombre" maxlength="20" />
+
+      <label>Dirección</label>
+      <input type="text" id="direccion" placeholder="Ej: Calle 123, Villa Club" />
+      <div id="direccion-status" class="muted"></div>
+
+      <label>Forma de Pago</label>
+
+      <div>
+        <input type="radio" name="pago" value="Efectivo" />
+        Efectivo
+      </div>
+
+      <div>
+        <input type="radio" name="pago" value="Transferencia" />
+        Transferencia
+      </div>
+
+      <div id="transferencia-warning" class="muted" style="display:none; margin-top:6px;">Recuerde enviar el comprobante de transferencia junto con su pedido</div>
+
+      <div>
+      </div>
+
+      <div class="alias-box">
+        Alias: <strong id="alias-text">cabala.sana.sabe.mp</strong>
+        <button class="emp-btn secondary" type="button" style="margin-top:8px; width:100%;" onclick="copiarAlias()">Copiar alias</button>
+        <div id="alias-copiado" class="muted" style="display:none; margin-top:6px;">Alias copiado</div>
+      </div>
+
+      <button onclick="enviarWhatsApp()">Enviar Pedido</button>
+    </aside>
+  </div>
+
+  <!-- Modal empanadas -->
+  <div id="emp-modal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-backdrop" onclick="cerrarEmpanadas()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="emp-modal-title">Empanadas</h3>
+        <button class="modal-close" onclick="cerrarEmpanadas()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="muted" id="emp-modal-subtitle"></p>
+        <div id="emp-modal-list" class="emp-list"></div>
+
+        <div class="emp-summary">
+          <div>
+            <strong>Seleccionadas:</strong>
+            <span id="emp-count">0</span>/<span id="emp-max">0</span>
+          </div>
+          <div>
+            <strong>Precio:</strong>
+            $<span id="emp-price">0</span>
+          </div>
+        </div>
+
+        <div class="emp-footer">
+          <button class="emp-btn secondary" onclick="limpiarEmpanadas()">Limpiar</button>
+          <button class="emp-btn" onclick="confirmarEmpanadas()">Agregar al carrito</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  
+
+
+
+
+  <!-- Modal Manaos -->
+  <div id="man-modal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-backdrop" onclick="cerrarManaos()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Manaos 2.25L</h3>
+        <button class="modal-close" onclick="cerrarManaos()">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="muted">Elegí el gusto:</p>
+        <div class="emp-actions" style="margin-top:10px;">
+          <button class="emp-btn" onclick="confirmarManaos('Cola')">Cola</button>
+          <button class="emp-btn" onclick="confirmarManaos('Lima-limón')">Lima-limón</button>
+          <button class="emp-btn" onclick="confirmarManaos('Pomelo')">Pomelo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
