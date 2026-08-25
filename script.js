@@ -6,46 +6,35 @@ const CONFIG = {
 };
 
 // ================= DATA =================
-const menu = {
-  pizzas: [
-    { nombre: "Muzzarella", precio: 10500, descripcion: "Abundante muzzarella" },
-    { nombre: "Fugazza", precio: 15000, descripcion: "Muzzarella / cebolla cocida cortada en juliana" },
-    { nombre: "Jamón Cocido", precio: 16500, descripcion: "Muzzarella / jamón" },
-    { nombre: "Jamón y Morrones", precio: 18000, descripcion: "Muzzarella / jamón / morrones" },
-    { nombre: "Napolitana", precio: 18000, descripcion: "Muzzarella / jamón / rodajas de tomate / albahaca" },
-    { nombre: "Calabresa", precio: 17000, descripcion: "Muzzarella / longaniza / pimentón" },
-    { nombre: "Roquefort", precio: 19000, descripcion: "Muzzarella / roquefort / tiritas de jamón" },
-    { nombre: "Jamón Crudo y Rúcula", precio: 22000, descripcion: "Muzzarella / jamón crudo / rúcula" },
-    { nombre: "Anchoas", precio: 21000, descripcion: "Muzzarella / anchoas" },
-    { nombre: "Ananá", precio: 22000, descripcion: "Muzzarella / jamón / rodajas de ananá" }
-  ],
-  tartas: [
-    { nombre: "Jamón", precio: 18000, descripcion: "Jamón & muzzarella" },
-    { nombre: "Verdura", precio: 18000, descripcion: "Espinaca & muzzarella" },
-    { nombre: "Cebolla", precio: 18000, descripcion: "Cebolla & muzzarella" }
-  ],
-  pastas: [
-    { nombre: "Sorrentinos (Jamón & Muzzarella)", precio: 20000, descripcion: "Jamón & muzzarella" },
-    { nombre: "Sorrentinos (Espinaca)", precio: 20000, descripcion: "Espinaca" },
-    { nombre: "Ravioles (Espinaca)", precio: 19000, descripcion: "Espinaca" },
-    { nombre: "Ravioles (Ricota)", precio: 19000, descripcion: "Ricota" },
-    { nombre: "Fideos", precio: 18000, descripcion: "Con estofado de carne" },
-    { nombre: "Ñoquis", precio: 18000, descripcion: "Con estofado de carne" }
-  ],
-  minutas: [
-    { nombre: "Hamburguesa", precio: 14000, descripcion: "Hamburguesa Unión Ganadera 120 grs: jamón, queso, lechuga, tomate, huevo frito y papas fritas." },
-    { nombre: "Milanesa Napolitana (Pollo)", precio: 19000, descripcion: "Elegí guarnición: fritas o ensalada mixta", config: { type: "milanesa", carne: "Pollo" } },
-    { nombre: "Milanesa Napolitana (Ternera)", precio: 19000, descripcion: "Elegí guarnición: fritas o ensalada mixta", config: { type: "milanesa", carne: "Ternera" } },
-    { nombre: "Papas Medianas", precio: 7000, descripcion: "Porción mediana", addon: { label: "Cheddar y verdeo", price: 3000 } },
-    { nombre: "Papas Grandes", precio: 10000, descripcion: "Porción grande", addon: { label: "Cheddar y verdeo", price: 3000 } }
-  ],
-  bebidas: [
-    { nombre: "Cerveza Lata", precio: 2800, descripcion: "473cc" },
-    { nombre: "Coca Cola", precio: 5700, descripcion: "2.25L" },
-    { nombre: "Coca Cola", precio: 5000, descripcion: "1.75L (sin azúcar)" },
-    { nombre: "Manaos", precio: 2100, descripcion: "2.25L", config: { type: "manaos", options: ["Cola", "Lima-limón", "Pomelo"] } }
-  ]
-};
+let menu = null; // se carga desde menu.json
+
+async function loadMenu() {
+  if (menu) return menu;
+
+  // 1) Preferir menú embebido (funciona con file://)
+  try {
+    const fromGlobal = globalThis?.LDVG_MENU;
+    if (fromGlobal && typeof fromGlobal === 'object') {
+      menu = fromGlobal;
+      return menu;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 2) Fallback: intentar cargar menu.json (requiere http/https)
+  try {
+    const resp = await fetch('menu.json', { cache: 'no-store' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    menu = await resp.json();
+    return menu;
+  } catch (e) {
+    console.warn('No se pudo cargar menu.json, usando fallback vacío', e);
+    menu = { pizzas: [], tartas: [], pastas: [], minutas: [], bebidas: [] };
+    return menu;
+  }
+}
+
 
 const EMP_RULE_MAX_UNIT = 12;
 
@@ -70,6 +59,50 @@ const milEls = new Map(); // milanesa baseKey -> checkboxElement
 
 let empState = null; // {tipo, pack, selected: Map, total, price}
 let addressState = { status: "idle", formatted: null, placeId: null };
+
+// ================= STORAGE (localStorage) =================
+const CART_STORAGE_KEY = 'ldvg_cart_v1';
+
+function saveCartToStorage() {
+  try {
+    // Guardamos un snapshot completo del carrito
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(carrito));
+  } catch (e) {
+    // ignore
+  }
+}
+
+function loadCartFromStorage() {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return;
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object') return;
+
+    // limpiar y rehidratar
+    Object.keys(carrito).forEach((k) => delete carrito[k]);
+
+    for (const [k, v] of Object.entries(obj)) {
+      if (!v || typeof v !== 'object') continue;
+
+      // Normalización mínima de campos básicos
+      const cantidad = Number(v.cantidad || 0);
+      const precio = Number(v.precio || 0);
+      if (!cantidad || cantidad <= 0) continue;
+
+      carrito[k] = { ...v, cantidad, precio };
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+function syncAllQtyFromCart() {
+  for (const baseKey of qtyEls.keys()) {
+    actualizarQty(baseKey);
+  }
+}
+
 
 // ================= HELPERS =================
 function escapeHtml(str) {
@@ -161,68 +194,90 @@ function renderProductos(idCategoria, productos) {
   if (!cont) return;
   cont.innerHTML = "";
 
-  productos.forEach((p) => {
-    const k = keyProducto(idCategoria, p.nombre, p.precio);
-    const kEnc = encodeURIComponent(k);
+  (productos || []).forEach((p) => {
+    const precioNum = Number(p?.precio || 0);
+    const k = keyProducto(idCategoria, p?.nombre || "", precioNum);
     const domKey = empKey(k);
 
     const row = document.createElement("div");
     row.className = "producto";
     row.dataset.key = k;
+    row.dataset.nombre = String(p?.nombre || "");
+    row.dataset.precio = String(precioNum);
+    row.dataset.categoria = String(idCategoria || "");
 
-    const desc = p.descripcion ? `<div class="desc">${escapeHtml(p.descripcion)}</div>` : "";
+    if (p?.config?.type) row.dataset.configType = String(p.config.type);
 
-    // Addon (solo para papas con cheddar)
+    if (p?.addon?.label && p?.addon?.price != null) {
+      row.dataset.addonLabel = String(p.addon.label);
+      row.dataset.addonPrice = String(Number(p.addon.price || 0));
+    }
+
+    // búsqueda (nombre + desc + categoría)
+    const searchText = `${p?.nombre || ""} ${p?.descripcion || ""} ${idCategoria || ""}`;
+    row.dataset.search = searchText;
+
+    const desc = p?.descripcion ? `<div class="desc">${escapeHtml(p.descripcion)}</div>` : "";
+
+    let precioHtml = `<div class="precio">$${fmtMoney(precioNum)}</div>`;
+    if (p?.config?.type === 'pizza_mitad') {
+      precioHtml = `<div class="precio muted">Precio según mitades</div>`;
+    }
+
     let addonHtml = "";
     let controlsHtml = "";
 
-    if (p.config && p.config.type === "milanesa") {
+    if (p?.config?.type === "milanesa") {
       const dom = empKey(k);
       addonHtml = `
-          <label class="addon">
-            <input type="checkbox" id="mil-${dom}" onchange="toggleMilanesaGuarnicion(decodeURIComponent('${kEnc}'))">
-            Ensalada mixta (por defecto papas fritas)
-          </label>
-        `;
+        <label class="addon">
+          <input type="checkbox" id="mil-${dom}" data-role="mil-checkbox">
+          Ensalada mixta (por defecto papas fritas)
+        </label>
+      `;
 
       controlsHtml = `
-          <button class="qty-btn" onclick="restarMilanesa(decodeURIComponent('${kEnc}'))">-</button>
-          <span class="qty" id="qty-${domKey}">0</span>
-          <button class="qty-btn" onclick="sumarMilanesa(decodeURIComponent('${kEnc}'), ${Number(p.precio)}, decodeURIComponent('${encodeURIComponent(p.nombre)}'))">+</button>
-        `;
-    } else if (p.config && p.config.type === "manaos") {
+        <button class="qty-btn" type="button" data-action="mil-minus">-</button>
+        <span class="qty" id="qty-${domKey}">0</span>
+        <button class="qty-btn" type="button" data-action="mil-plus">+</button>
+      `;
+    } else if (p?.config?.type === "manaos") {
       controlsHtml = `
-        <button class="emp-btn" onclick="abrirManaos(${Number(p.precio)})">Elegir sabor</button>
+        <button class="emp-btn" type="button" data-action="manaos-open">Elegir sabor</button>
+      `;
+    } else if (p?.config?.type === 'pizza_mitad') {
+      controlsHtml = `
+        <button class="emp-btn" type="button" data-action="half-open">Elegir mitades</button>
       `;
     } else {
-      if (p.addon && p.addon.label && p.addon.price != null) {
+      if (p?.addon?.label && p?.addon?.price != null) {
         const dom = empKey(k);
         addonHtml = `
           <label class="addon">
-            <input type="checkbox" id="addon-${dom}" onchange="toggleAddon(decodeURIComponent('${kEnc}'), this.checked)">
+            <input type="checkbox" id="addon-${dom}" data-role="addon-checkbox">
             ${escapeHtml(p.addon.label)} (+$${fmtMoney(p.addon.price)})
           </label>
         `;
 
         controlsHtml = `
-          <button class="qty-btn" onclick="restarItem(decodeURIComponent('${kEnc}'))">-</button>
+          <button class="qty-btn" type="button" data-action="prod-minus">-</button>
           <span class="qty" id="qty-${domKey}">0</span>
-          <button class="qty-btn" onclick="sumarProductoConAddon(decodeURIComponent('${kEnc}'), ${Number(p.precio)}, decodeURIComponent('${encodeURIComponent(p.nombre)}'), decodeURIComponent('${encodeURIComponent(p.addon.label)}'), ${Number(p.addon.price)})">+</button>
+          <button class="qty-btn" type="button" data-action="prod-plus">+</button>
         `;
       } else {
         controlsHtml = `
-          <button class="qty-btn" onclick="restarItem(decodeURIComponent('${kEnc}'))">-</button>
+          <button class="qty-btn" type="button" data-action="prod-minus">-</button>
           <span class="qty" id="qty-${domKey}">0</span>
-          <button class="qty-btn" onclick="sumarProducto(decodeURIComponent('${kEnc}'), ${Number(p.precio)}, decodeURIComponent('${encodeURIComponent(p.nombre)}'))">+</button>
+          <button class="qty-btn" type="button" data-action="prod-plus">+</button>
         `;
       }
     }
 
     row.innerHTML = `
       <div class="producto-info">
-        <strong>${escapeHtml(p.nombre)}</strong>
+        <strong>${escapeHtml(p?.nombre || "")}</strong>
         ${desc}
-        <div class="precio">$${fmtMoney(p.precio)}</div>
+        ${precioHtml}
         ${addonHtml}
       </div>
       <div class="controls">${controlsHtml}</div>
@@ -235,20 +290,21 @@ function renderProductos(idCategoria, productos) {
     if (qtyEl) qtyEls.set(k, qtyEl);
 
     // addon checkbox
-    if (p.addon && p.addon.label && p.addon.price != null) {
+    if (p?.addon?.label && p?.addon?.price != null) {
       const dom = empKey(k);
       const cb = row.querySelector(`#addon-${CSS.escape(dom)}`);
       if (cb) addonEls.set(k, cb);
     }
 
     // milanesa checkbox
-    if (p.config && p.config.type === "milanesa") {
+    if (p?.config?.type === "milanesa") {
       const dom = empKey(k);
       const cb = row.querySelector(`#mil-${CSS.escape(dom)}`);
       if (cb) milEls.set(k, cb);
     }
   });
 }
+
 function sumarProducto(key, precio, nombreVisible) {
   if (!carrito[key]) {
     carrito[key] = { tipo: "producto", nombre: nombreVisible, cantidad: 0, precio };
@@ -499,16 +555,17 @@ function actualizarCarrito() {
     const row = document.createElement("div");
     row.className = "cart-row";
 
-    const detalle = it.detalle ? `<div class="cart-detail">${escapeHtml(it.detalle)}</div>` : "";
+    const detalle = it?.detalle ? `<div class="cart-detail">${escapeHtml(it.detalle)}</div>` : "";
+    const keyEnc = encodeURIComponent(key);
 
     row.innerHTML = `
       <div class="cart-left">
-        <div class="cart-title">${escapeHtml(it.nombre || "(sin nombre)")}</div>
+        <div class="cart-title">${escapeHtml(it?.nombre || "(sin nombre)")}</div>
         ${detalle}
-        <div class="cart-sub">${it.cantidad} x $${fmtMoney(u)} = <strong>$${fmtMoney(subtotal)}</strong></div>
+        <div class="cart-sub">${it?.cantidad || 0} x $${fmtMoney(u)} = <strong>$${fmtMoney(subtotal)}</strong></div>
       </div>
       <div class="cart-right">
-        <button class="trash" title="Eliminar" onclick="eliminarLinea('${escapeHtml(key)}')">✕</button>
+        <button class="trash" type="button" title="Eliminar" data-action="cart-remove" data-key="${keyEnc}">✕</button>
       </div>
     `;
 
@@ -517,9 +574,143 @@ function actualizarCarrito() {
 
   const totalEl = document.getElementById("total");
   if (totalEl) totalEl.innerText = fmtMoney(total);
+
+  // persistencia
+  saveCartToStorage();
 }
 
 
+// ================= PIZZA MITAD Y MITAD =================
+let halfState = { a: null, b: null }; // nombre de pizza
+
+function pizzasBaseParaMitades() {
+  // pizzas reales (excluye el item especial pizza_mitad)
+  const list = (menu?.pizzas || []).filter(p => !(p?.config?.type === 'pizza_mitad'));
+  return list;
+}
+
+function abrirPizzaMitadMitad() {
+  const modal = document.getElementById('half-modal');
+  if (!modal) return;
+
+  const sel1 = document.getElementById('half-1');
+  const sel2 = document.getElementById('half-2');
+  if (!sel1 || !sel2) return;
+
+  const pizzas = pizzasBaseParaMitades();
+
+  const buildOptions = () => {
+    const opts = ['<option value="">-- Elegir --</option>'];
+    pizzas.forEach(p => {
+      const nombre = String(p.nombre || '');
+      const precio = Number(p.precio || 0);
+      const half = precio / 2;
+      opts.push(`<option value="${encodeURIComponent(nombre)}">${escapeHtml(nombre)} (½ $${fmtMoney(half)})</option>`);
+    });
+    return opts.join('');
+  };
+
+  const htmlOpts = buildOptions();
+  sel1.innerHTML = htmlOpts;
+  sel2.innerHTML = htmlOpts;
+
+  // reset state
+  halfState = { a: '', b: '' };
+  sel1.value = '';
+  sel2.value = '';
+
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  syncPizzaMitadMitadUI();
+}
+
+function cerrarPizzaMitadMitad() {
+  const modal = document.getElementById('half-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function limpiarPizzaMitadMitad() {
+  const sel1 = document.getElementById('half-1');
+  const sel2 = document.getElementById('half-2');
+  if (sel1) sel1.value = '';
+  if (sel2) sel2.value = '';
+  halfState = { a: '', b: '' };
+  syncPizzaMitadMitadUI();
+}
+
+function findPizzaByName(nombre) {
+  const pizzas = pizzasBaseParaMitades();
+  return pizzas.find(p => String(p.nombre || '') === String(nombre || '')) || null;
+}
+
+function calcHalfPrice(nombre) {
+  const p = findPizzaByName(nombre);
+  const full = Number(p?.precio || 0);
+  return full / 2;
+}
+
+function syncPizzaMitadMitadUI() {
+  const sel1 = document.getElementById('half-1');
+  const sel2 = document.getElementById('half-2');
+  const priceEl = document.getElementById('half-price');
+  if (!sel1 || !sel2 || !priceEl) return;
+
+  const a = decodeURIComponent(sel1.value || '');
+  const b = decodeURIComponent(sel2.value || '');
+
+  // Si quedaron iguales, limpiamos la mitad 2 (regla: no duplicar)
+  if (a && b && a === b) {
+    sel2.value = '';
+  }
+
+  const a2 = decodeURIComponent(sel1.value || '');
+  const b2 = decodeURIComponent(sel2.value || '');
+  halfState = { a: a2, b: b2 };
+
+  // Deshabilitar en cada select la opción seleccionada en el otro
+  const disableOption = (selectEl, nombreToDisable) => {
+    const encoded = encodeURIComponent(nombreToDisable || '');
+    for (const opt of Array.from(selectEl.options)) {
+      if (!opt.value) { opt.disabled = false; continue; }
+      opt.disabled = (nombreToDisable && opt.value === encoded);
+    }
+  };
+
+  disableOption(sel1, b2);
+  disableOption(sel2, a2);
+
+  const total = (a2 ? calcHalfPrice(a2) : 0) + (b2 ? calcHalfPrice(b2) : 0);
+  priceEl.textContent = fmtMoney(total);
+}
+
+function confirmarPizzaMitadMitad() {
+  const a = halfState.a;
+  const b = halfState.b;
+
+  if (!a || !b) {
+    alert('Elegí las 2 mitades.');
+    return;
+  }
+
+  const pa = calcHalfPrice(a);
+  const pb = calcHalfPrice(b);
+  const total = pa + pb;
+
+  const key = `PIZZA_HALF::${Date.now()}::${Math.random().toString(16).slice(2)}`;
+  carrito[key] = {
+    tipo: 'pizza_mitad',
+    nombre: 'Pizza Mitad y Mitad',
+    detalle: `Mitad 1: ${a} (½ $${fmtMoney(pa)})\nMitad 2: ${b} (½ $${fmtMoney(pb)})`,
+    cantidad: 1,
+    precio: total,
+    halves: { a, b, pa, pb }
+  };
+
+  actualizarCarrito();
+  cerrarPizzaMitadMitad();
+}
 
 // ================= EMPANADAS (modal + packs) =================
 function abrirEmpanadas(tipo, pack) {
@@ -558,9 +749,9 @@ function abrirEmpanadas(tipo, pack) {
         <div class="emp-sabor">${escapeHtml(sabor)}</div>
       </div>
       <div class="emp-row-right">
-        <button class="qty-btn" onclick="empRestar('${escapeHtml(sabor)}')">-</button>
+        <button class="qty-btn" type="button" data-action="emp-sabor-minus" data-sabor="${encodeURIComponent(sabor)}">-</button>
         <span class="qty" data-emp-key="${empKey(sabor)}">0</span>
-        <button class="qty-btn" onclick="empSumar('${escapeHtml(sabor)}')">+</button>
+        <button class="qty-btn" type="button" data-action="emp-sabor-plus" data-sabor="${encodeURIComponent(sabor)}">+</button>
       </div>
     `;
     list.appendChild(row);
@@ -727,19 +918,22 @@ function aplicarFiltro(filtroRaw) {
   const filtro = (filtroRaw || "").trim().toLowerCase();
   const sections = document.querySelectorAll(".menu-section");
 
+  // Productos renderizados (excluye empanadas que es sección especial)
+  const prods = document.querySelectorAll(".producto");
+
   if (!filtro) {
-    document.querySelectorAll(".producto").forEach((p) => (p.style.display = "flex"));
+    prods.forEach((p) => (p.style.display = "flex"));
     sections.forEach((s) => (s.style.display = "block"));
     return;
   }
 
-  // filtrar productos
-  document.querySelectorAll(".producto").forEach((prod) => {
-    const texto = prod.innerText.toLowerCase();
-    prod.style.display = texto.includes(filtro) ? "flex" : "none";
+  // Filtrar productos usando dataset.search (nombre+desc+categ)
+  prods.forEach((prod) => {
+    const text = (prod.dataset.search || prod.innerText || "").toLowerCase();
+    prod.style.display = text.includes(filtro) ? "flex" : "none";
   });
 
-  // ocultar secciones sin resultados
+  // Ocultar secciones sin resultados
   sections.forEach((section) => {
     const sec = section.dataset.section;
 
@@ -756,13 +950,154 @@ function aplicarFiltro(filtroRaw) {
 }
 
 // ================= INIT =================
-function init() {
+
+function bindUI() {
+  // Clicks
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+
+    const action = el.dataset.action;
+
+    // acciones de modales/backdrops
+    if (action === 'emp-close') return cerrarEmpanadas();
+    if (action === 'manaos-close') return cerrarManaos();
+
+    // acciones con filas de producto
+    const prodRow = el.closest('.producto');
+    const baseKey = prodRow?.dataset?.key || null;
+
+    switch (action) {
+      case 'prod-plus': {
+        if (!prodRow || !baseKey) return;
+        const precio = Number(prodRow.dataset.precio || 0);
+        const nombre = String(prodRow.dataset.nombre || '');
+        const addonLabel = prodRow.dataset.addonLabel;
+        const addonPrice = prodRow.dataset.addonPrice;
+        if (addonLabel && addonPrice != null) {
+          return sumarProductoConAddon(baseKey, precio, nombre, addonLabel, Number(addonPrice || 0));
+        }
+        return sumarProducto(baseKey, precio, nombre);
+      }
+      case 'prod-minus': {
+        if (!baseKey) return;
+        return restarItem(baseKey);
+      }
+      case 'mil-plus': {
+        if (!prodRow || !baseKey) return;
+        const precio = Number(prodRow.dataset.precio || 0);
+        const nombre = String(prodRow.dataset.nombre || '');
+        return sumarMilanesa(baseKey, precio, nombre);
+      }
+      case 'mil-minus': {
+        if (!baseKey) return;
+        return restarMilanesa(baseKey);
+      }
+      case 'manaos-open': {
+        if (!prodRow) return;
+        const precio = Number(prodRow.dataset.precio || 0);
+        return abrirManaos(precio);
+      }
+      case 'half-open': {
+        if (!prodRow) return;
+        return abrirPizzaMitadMitad();
+      }
+
+      // carrito
+      case 'cart-remove': {
+        const kEnc = el.dataset.key || '';
+        const k = decodeURIComponent(kEnc);
+        return eliminarLinea(k);
+      }
+      case 'vaciar-carrito':
+        return vaciarCarrito();
+      case 'copy-alias':
+        return copiarAlias();
+      case 'send-wa':
+        return enviarWhatsApp();
+
+      // empanadas
+      case 'emp-open': {
+        const tipo = el.dataset.tipo;
+        const pack = Number(el.dataset.pack || 0);
+        return abrirEmpanadas(tipo, pack);
+      }
+      case 'emp-clear':
+        return limpiarEmpanadas();
+      case 'emp-confirm':
+        return confirmarEmpanadas();
+
+      // empanadas (botones por sabor)
+      case 'emp-sabor-plus': {
+        const sEnc = el.dataset.sabor || '';
+        const sabor = decodeURIComponent(sEnc);
+        return empSumar(sabor);
+      }
+      case 'emp-sabor-minus': {
+        const sEnc = el.dataset.sabor || '';
+        const sabor = decodeURIComponent(sEnc);
+        return empRestar(sabor);
+      }
+
+      // pizza mitad y mitad
+      case 'half-close':
+        return cerrarPizzaMitadMitad();
+      case 'half-clear':
+        return limpiarPizzaMitadMitad();
+      case 'half-confirm':
+        return confirmarPizzaMitadMitad();
+      // manaos modal
+      case 'manaos-confirm': {
+        const sabor = el.dataset.sabor || '';
+        return confirmarManaos(sabor);
+      }
+
+      default:
+        return;
+    }
+  });
+
+  // Changes (checkboxes)
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLInputElement) && !(t instanceof HTMLSelectElement)) return;
+
+    // selects de pizza mitad y mitad
+    if (t instanceof HTMLSelectElement && t.classList.contains('half-select')) {
+      return syncPizzaMitadMitadUI();
+    }
+
+
+    if (t.dataset.role === 'addon-checkbox') {
+      const row = t.closest('.producto');
+      const baseKey = row?.dataset?.key || null;
+      if (baseKey) toggleAddon(baseKey, t.checked);
+      return;
+    }
+
+    if (t.dataset.role === 'mil-checkbox') {
+      const row = t.closest('.producto');
+      const baseKey = row?.dataset?.key || null;
+      if (baseKey) toggleMilanesaGuarnicion(baseKey);
+      return;
+    }
+  });
+}
+
+async function init() {
+  await loadMenu();
+  bindUI();
+
   // render
   renderProductos("pizzas", menu.pizzas);
   renderProductos("tartas", menu.tartas);
   renderProductos("pastas", menu.pastas);
   renderProductos("minutas", menu.minutas);
   renderProductos("bebidas", menu.bebidas);
+
+  loadCartFromStorage();
+  actualizarCarrito();
+  syncAllQtyFromCart();
 
   // buscador
   const buscador = document.getElementById("buscador");
@@ -788,8 +1123,6 @@ function init() {
   };
   radios.forEach(r => r.addEventListener('change', syncWarn));
   syncWarn();
-
-  actualizarCarrito();
 }
 
 document.addEventListener("DOMContentLoaded", init);

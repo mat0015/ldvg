@@ -243,3 +243,21 @@ h2{
 .emp-sabor{ font-weight:700; }
 .emp-summary{ display:flex; justify-content:space-between; margin-top:12px; padding-top:12px; border-top:1px solid #eee; }
 .emp-footer{ display:flex; justify-content:flex-end; gap:10px; margin-top:12px; }
+
+
+/* Pizza mitad y mitad */
+.half-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+  margin-top:10px;
+}
+.half-select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
+@media(max-width:520px){
+  .half-grid{ grid-template-columns: 1fr; }
+}
