@@ -205,6 +205,7 @@ function renderProductos(idCategoria, productos) {
     row.dataset.nombre = String(p?.nombre || "");
     row.dataset.precio = String(precioNum);
     row.dataset.categoria = String(idCategoria || "");
+    row.dataset.desc = String(p?.descripcion || "");
 
     if (p?.config?.type) row.dataset.configType = String(p.config.type);
 
@@ -240,6 +241,14 @@ function renderProductos(idCategoria, productos) {
         <button class="qty-btn" type="button" data-action="mil-minus">-</button>
         <span class="qty" id="qty-${domKey}">0</span>
         <button class="qty-btn" type="button" data-action="mil-plus">+</button>
+      `;
+    } else if (p?.config?.type === "sandwich2_promo") {
+      controlsHtml = `
+        <button class="emp-btn" type="button" data-action="sand2-open">Elegir</button>
+      `;
+    } else if (p?.config?.type === "sandwich_promo") {
+      controlsHtml = `
+        <button class="emp-btn" type="button" data-action="sand-open">Elegir</button>
       `;
     } else if (p?.config?.type === "manaos") {
       controlsHtml = `
@@ -305,10 +314,16 @@ function renderProductos(idCategoria, productos) {
   });
 }
 
-function sumarProducto(key, precio, nombreVisible) {
+function sumarProducto(key, precio, nombreVisible, detalleOpt) {
   if (!carrito[key]) {
     carrito[key] = { tipo: "producto", nombre: nombreVisible, cantidad: 0, precio };
   }
+
+  // mantener actualizado
+  carrito[key].nombre = nombreVisible;
+  carrito[key].precio = Number(precio || 0);
+  if (detalleOpt) carrito[key].detalle = String(detalleOpt);
+
   carrito[key].cantidad++;
   actualizarCarrito();
   actualizarQty(key);
@@ -555,7 +570,7 @@ function actualizarCarrito() {
     const row = document.createElement("div");
     row.className = "cart-row";
 
-    const detalle = it?.detalle ? `<div class="cart-detail">${escapeHtml(it.detalle)}</div>` : "";
+    const detalle = it?.detalle ? `<div class="cart-detail">${escapeHtml(it.detalle).split('\n').join('<br>')}</div>` : "";
     const keyEnc = encodeURIComponent(key);
 
     row.innerHTML = `
@@ -579,6 +594,169 @@ function actualizarCarrito() {
   saveCartToStorage();
 }
 
+
+
+// ================= SANDWICH PROMO (modal) =================
+let sandState = { basePrice: 10000, meat: '', lt: false, jq: false };
+
+function abrirSandwichPromo(basePrice) {
+  const modal = document.getElementById('sand-modal');
+  if (!modal) return;
+
+  sandState = { basePrice: Number(basePrice || 0) || 10000, meat: '', lt: false, jq: false };
+
+  const sel = document.getElementById('sand-meat-selected');
+  if (sel) sel.textContent = '';
+
+  const cbLT = document.getElementById('sand-extra-lt');
+  const cbJQ = document.getElementById('sand-extra-jq');
+  if (cbLT) cbLT.checked = false;
+  if (cbJQ) cbJQ.checked = false;
+
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  syncSandwichPromoUI();
+}
+
+function cerrarSandwichPromo() {
+  const modal = document.getElementById('sand-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function limpiarSandwichPromo() {
+  sandState.meat = '';
+  sandState.lt = false;
+  sandState.jq = false;
+  const sel = document.getElementById('sand-meat-selected');
+  if (sel) sel.textContent = '';
+  const cbLT = document.getElementById('sand-extra-lt');
+  const cbJQ = document.getElementById('sand-extra-jq');
+  if (cbLT) cbLT.checked = false;
+  if (cbJQ) cbJQ.checked = false;
+  syncSandwichPromoUI();
+}
+
+function setSandwichMeat(meat) {
+  sandState.meat = String(meat || '');
+  const sel = document.getElementById('sand-meat-selected');
+  if (sel) sel.textContent = sandState.meat ? `Seleccionado: ${sandState.meat}` : '';
+  syncSandwichPromoUI();
+}
+
+function syncSandwichPromoFromCheckboxes() {
+  const cbLT = document.getElementById('sand-extra-lt');
+  const cbJQ = document.getElementById('sand-extra-jq');
+  sandState.lt = cbLT ? !!cbLT.checked : false;
+  sandState.jq = cbJQ ? !!cbJQ.checked : false;
+  syncSandwichPromoUI();
+}
+
+function sandExtraTotal() {
+  return (sandState.lt ? 3000 : 0) + (sandState.jq ? 3000 : 0);
+}
+
+function syncSandwichPromoUI() {
+  const priceEl = document.getElementById('sand-price');
+  if (!priceEl) return;
+  const total = Number(sandState.basePrice || 0) + sandExtraTotal();
+  priceEl.textContent = fmtMoney(total);
+}
+
+function confirmarSandwichPromo() {
+  // asegurar que el estado refleje los checks actuales
+  syncSandwichPromoFromCheckboxes();
+
+  if (!sandState.meat) {
+    alert('Elegí si es Carne o Pollo.');
+    return;
+  }
+
+  const extras = [];
+  if (sandState.lt) extras.push('Lechuga y tomate');
+  if (sandState.jq) extras.push('Jamón y queso');
+
+  const extrasTxt = []
+  if (sandState.lt) extrasTxt.push('Lechuga y tomate (+$3.000)');
+  if (sandState.jq) extrasTxt.push('Jamón y queso (+$3.000)');
+
+  const total = Number(sandState.basePrice || 0) + sandExtraTotal();
+
+  const det = [
+    'Sandwich de milanesa',
+    `Tipo: ${sandState.meat}`,
+    ...(extrasTxt.length ? [`Extras: ${extrasTxt.join(' + ')}`] : [])
+  ].join('\n');
+
+  const key = `SAND_PROMO::${Date.now()}::${Math.random().toString(16).slice(2)}`;
+  carrito[key] = {
+    tipo: 'sandwich_promo',
+    nombre: 'PROMO 7',
+    detalle: det,
+    cantidad: 1,
+    precio: total,
+    meta: { meat: sandState.meat, lt: sandState.lt, jq: sandState.jq }
+  };
+
+  actualizarCarrito();
+  cerrarSandwichPromo();
+}
+
+
+// ================= SANDWICH 2 PROMO (modal) =================
+let sand2State = { basePrice: 24000, meat: '' };
+
+function abrirSandwich2Promo(basePrice) {
+  const modal = document.getElementById('sand2-modal');
+  if (!modal) return;
+  sand2State = { basePrice: Number(basePrice || 0) || 24000, meat: '' };
+  const sel = document.getElementById('sand2-meat-selected');
+  if (sel) sel.textContent = '';
+  const priceEl = document.getElementById('sand2-price');
+  if (priceEl) priceEl.textContent = fmtMoney(sand2State.basePrice);
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function cerrarSandwich2Promo() {
+  const modal = document.getElementById('sand2-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function limpiarSandwich2Promo() {
+  sand2State.meat = '';
+  const sel = document.getElementById('sand2-meat-selected');
+  if (sel) sel.textContent = '';
+}
+
+function setSandwich2Meat(meat) {
+  sand2State.meat = String(meat || '');
+  const sel = document.getElementById('sand2-meat-selected');
+  if (sel) sel.textContent = sand2State.meat ? `Seleccionado: ${sand2State.meat}` : '';
+}
+
+function confirmarSandwich2Promo() {
+  if (!sand2State.meat) {
+    alert('Elegí si es Carne o Pollo.');
+    return;
+  }
+
+  const key = `SAND2_PROMO::${Date.now()}::${Math.random().toString(16).slice(2)}`;
+  carrito[key] = {
+    tipo: 'sandwich2_promo',
+    nombre: 'PROMO 8',
+    detalle: `Tipo: ${sand2State.meat}\nIncluye: 2 sandwiches + lechuga y tomate`,
+    cantidad: 1,
+    precio: Number(sand2State.basePrice || 24000),
+    meta: { meat: sand2State.meat }
+  };
+
+  actualizarCarrito();
+  cerrarSandwich2Promo();
+}
 
 // ================= PIZZA MITAD Y MITAD =================
 let halfState = { a: null, b: null }; // nombre de pizza
@@ -977,7 +1155,8 @@ function bindUI() {
         if (addonLabel && addonPrice != null) {
           return sumarProductoConAddon(baseKey, precio, nombre, addonLabel, Number(addonPrice || 0));
         }
-        return sumarProducto(baseKey, precio, nombre);
+        const det = String(prodRow.dataset.desc || "").trim();
+        return sumarProducto(baseKey, precio, nombre, det || null);
       }
       case 'prod-minus': {
         if (!baseKey) return;
@@ -1001,6 +1180,38 @@ function bindUI() {
       case 'half-open': {
         if (!prodRow) return;
         return abrirPizzaMitadMitad();
+      }
+
+      case 'sand-open': {
+        // Abrir modal sandwich promo. Tomamos el precio base del item (dataset.precio)
+        if (!prodRow) return;
+        const precio = Number(prodRow.dataset.precio || 0);
+        return abrirSandwichPromo(precio || 10000);
+      }
+      case 'sand-close':
+        return cerrarSandwichPromo();
+      case 'sand-clear':
+        return limpiarSandwichPromo();
+      case 'sand-confirm':
+        return confirmarSandwichPromo();
+      case 'sand-meat': {
+        const meat = el.dataset.meat || '';
+        return setSandwichMeat(meat);
+      }
+      case 'sand2-open': {
+        if (!prodRow) return;
+        const precio = Number(prodRow.dataset.precio || 0);
+        return abrirSandwich2Promo(precio || 24000);
+      }
+      case 'sand2-close':
+        return cerrarSandwich2Promo();
+      case 'sand2-clear':
+        return limpiarSandwich2Promo();
+      case 'sand2-confirm':
+        return confirmarSandwich2Promo();
+      case 'sand2-meat': {
+        const meat = el.dataset.meat || '';
+        return setSandwich2Meat(meat);
       }
 
       // carrito
@@ -1081,6 +1292,10 @@ function bindUI() {
       if (baseKey) toggleMilanesaGuarnicion(baseKey);
       return;
     }
+
+    if (t.dataset.role === 'sand-extra') {
+      return syncSandwichPromoFromCheckboxes();
+    }
   });
 }
 
@@ -1094,6 +1309,7 @@ async function init() {
   renderProductos("pastas", menu.pastas);
   renderProductos("minutas", menu.minutas);
   renderProductos("bebidas", menu.bebidas);
+  renderProductos("promociones", menu.promociones);
 
   loadCartFromStorage();
   actualizarCarrito();
@@ -1113,6 +1329,37 @@ async function init() {
     dir.addEventListener("blur", () => validarDireccionGoogle(dir.value));
   }
 
+
+
+  // horario aproximado (UI)
+  const asap = document.getElementById('horario-asap');
+  const timeWrap = document.getElementById('horario-time-wrap');
+  const timeInput = document.getElementById('horario-select');
+
+  const syncHorarioUI = () => {
+    if (!asap || !timeWrap || !timeInput) return;
+    // Siempre visible el dropdown
+    timeWrap.style.display = 'block';
+    // Si ASAP está tildado, el select queda en blanco
+    if (asap.checked) timeInput.value = '';
+  };
+
+  if (asap) {
+    asap.addEventListener('change', () => {
+      if (asap.checked && timeInput) timeInput.value = '';
+      syncHorarioUI();
+    });
+  }
+
+  if (timeInput) {
+    timeInput.addEventListener('change', () => {
+      if (!timeInput.value) return;
+      if (asap) asap.checked = false;
+      syncHorarioUI();
+    });
+  }
+
+  syncHorarioUI();
   // aviso transferencia
   const warn = document.getElementById('transferencia-warning');
   const radios = document.querySelectorAll("input[name='pago']");
@@ -1142,7 +1389,7 @@ async function validarDireccionGoogle(direccion) {
   if (!CONFIG.googleMapsApiKey) {
     // Sin key: no bloquear, sólo avisar
     addressState = { status: "no_key", formatted: null, placeId: null };
-    statusEl.textContent = "(Dirección sin validar: falta API key de Google Maps)";
+    statusEl.textContent = "";
     return;
   }
 
@@ -1163,7 +1410,6 @@ async function validarDireccionGoogle(direccion) {
       statusEl.textContent = "Dirección no encontrada. Revisá calle y altura.";
       return;
     }
-
     const best = data.results[0];
     addressState = { status: "ok", formatted: best.formatted_address, placeId: best.place_id };
     statusEl.textContent = `Dirección validada: ${best.formatted_address}`;
@@ -1173,9 +1419,28 @@ async function validarDireccionGoogle(direccion) {
   }
 }
 // ================= WHATSAPP =================
+function getHorarioLine() {
+  const asap = document.getElementById('horario-asap');
+  const timeInput = document.getElementById('horario-select');
+
+  if (asap && asap.checked) return 'Lo antes posible';
+
+  const t = (timeInput?.value || '').trim();
+  if (!t) return 'Lo antes posible';
+
+  // Validación simple de rango 19:00–22:00
+  const [hh, mm] = t.split(':').map((x) => Number(x));
+  if (Number.isNaN(hh) || Number.isNaN(mm)) return 'Lo antes posible';
+  const mins = hh * 60 + mm;
+  if (mins < 19 * 60 || mins > 22 * 60) return 'Lo antes posible';
+
+  return t;
+}
+
 async function enviarWhatsApp() {
   const nombre = document.getElementById("nombre")?.value?.trim() || "";
   const direccion = document.getElementById("direccion")?.value?.trim() || "";
+  const horarioLine = getHorarioLine();
   const pago = document.querySelector("input[name='pago']:checked");
 
   if (!nombre) {
@@ -1225,7 +1490,8 @@ async function enviarWhatsApp() {
 
   const dirLine = addressState.formatted ? addressState.formatted : direccion;
 
-  const msg = `Hola! Soy ${nombre}.\nDirección: ${dirLine}.\nPago: ${pago.value}.\n\nPedido:\n${detalle}\nTotal: $${fmtMoney(total)}`;
+
+  const msg = `Hola! Soy ${nombre}.\nDirección: ${dirLine}.\nHorario aproximado: ${horarioLine}.\nPago: ${pago.value}.\n\nPedido:\n${detalle}\nTotal: $${fmtMoney(total)}`;
 
   const url = `https://wa.me/${CONFIG.whatsappPhone}?text=${encodeURIComponent(msg)}`;
   window.open(url, "_blank");

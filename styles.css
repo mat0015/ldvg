@@ -128,6 +128,7 @@ button{
     padding:10px;
     border-radius:8px;
     font-size:14px;
+    text-align:center;
 }
 
 .carrito label{
@@ -208,6 +209,10 @@ h2{
   width:32px;
   height:32px;
   border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
 }
 
 /* Modal */
@@ -261,3 +266,7 @@ h2{
 @media(max-width:520px){
   .half-grid{ grid-template-columns: 1fr; }
 }
+
+.alias-box strong{ display:inline-block; }
+
+.carrito .trash{ width:32px !important; height:32px !important; padding:0 !important; margin-top:0 !important; }

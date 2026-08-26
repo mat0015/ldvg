@@ -180,5 +180,77 @@
         ]
       }
     }
+  ],
+  "promociones": [
+    {
+      "nombre": "PROMO 1",
+      "precio": 23000,
+      "descripcion": "1 Muzzarella + 1 Fugazza"
+    },
+    {
+      "nombre": "PROMO 2",
+      "precio": 26000,
+      "descripcion": "1 Muzzarella + 1 Jamón y Morrones"
+    },
+    {
+      "nombre": "PROMO 3",
+      "precio": 26000,
+      "descripcion": "1 Muzzarella + 1 Napolitana"
+    },
+    {
+      "nombre": "PROMO 4",
+      "precio": 30000,
+      "descripcion": "1 Muzzarella + 1 Cochina"
+    },
+    {
+      "nombre": "PROMO 5",
+      "precio": 19000,
+      "descripcion": "1 Muzzarella + 6 Empanadas surtidas (Jamón y Carne)"
+    },
+    {
+      "nombre": "PROMO 6",
+      "precio": 20000,
+      "descripcion": "2 Muzzarellas"
+    },
+    {
+      "nombre": "PROMO 7",
+      "precio": 10000,
+      "descripcion": "Sandwich de milanesa de Carne o Pollo + extras opcionales (Lechuga y tomate / Jamón y queso)",
+      "config": {
+        "type": "sandwich_promo",
+        "basePrice": 10000,
+        "meats": [
+          "Carne",
+          "Pollo"
+        ],
+        "extras": [
+          {
+            "key": "lt",
+            "label": "Lechuga y tomate",
+            "price": 3000
+          },
+          {
+            "key": "jq",
+            "label": "Jamón y queso",
+            "price": 3000
+          }
+        ]
+      }
+    },
+    {
+      "nombre": "PROMO 8",
+      "precio": 24000,
+      "descripcion": "2 sandwiches de milanesa con lechuga y tomate (Carne o Pollo)",
+      "config": {
+        "type": "sandwich2_promo",
+        "basePrice": 24000,
+        "meats": [
+          "Carne",
+          "Pollo"
+        ],
+        "fixed": "Lechuga y tomate",
+        "qty": 2
+      }
+    }
   ]
 }
