@@ -1,659 +1,356 @@
 <!DOCTYPE html>
-
 <html lang="es">
-
 <head>
-
   <meta charset="UTF-8" />
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>Lo de Vero & George</title>
-
   <link rel="stylesheet" href="styles.css" />
-
 </head>
-
 <body>
-
   <header>
-
     <h1>🍕 Lo de Vero & George</h1>
 
- 
-
     <div class="header-info">
-
       <p>📞 WhatsApp: 11-2321-9676</p>
-
       <p>🚚 Delivery sin cargo en Villa Club</p>
-
       <p>🕒 Martes a Domingo - 18:00 a 22:00 hs</p>
-
       <p>💳 Alias MP: <strong>cabala.sana.sabe.mp</strong></p>
-
-    </div>
-
- 
+</div>
 
     <input type="text" id="buscador" placeholder="🔎 Buscar producto..." />
-
-  </header>
-
- 
+  
+    <div class="menu-tools">
+      <button type="button" class="tool-btn" data-action="toggle-all-open">Abrir todo</button>
+      <button type="button" class="tool-btn" data-action="toggle-all-close">Cerrar todo</button>
+    </div>
+</header>
 
   <div class="container">
-
     <main class="menu" id="menu">
-
-     
-
+      
         
 
- 
-
     <section class="menu-section" data-section="promociones">
-
-      <h2>Promociones</h2>
-
+      <h2 class="cat-title cat-promociones">🏷️ Promociones</h2>
+  <div class="menu-content">
       <div id="promociones"></div>
+  </div>
 
     </section>
 
- 
-
- 
 
 <section class="menu-section" data-section="pizzas">
-
-        <h2>Pizzas</h2>
-
+        <h2 class="cat-title cat-pizzas">🍕 Pizzas</h2>
+  <div class="menu-content">
         <div id="pizzas"></div>
+  </div>
 
       </section>
-
- 
 
       <section class="menu-section" data-section="empanadas">
-
-        <h2>🥟 Empanadas</h2>
-
+        <h2 class="cat-title cat-empanadas">🥟 Empanadas</h2>
+  <div class="menu-content">
         <div class="empanadas-cards">
-
           <div class="emp-card">
-
             <h3>Empanadas comunes</h3>
-
             <p class="muted">Carne, Pollo, Jamón y Muzzarella</p>
-
             <div class="emp-actions">
-
               <button class="emp-btn" type="button" data-action="emp-open" data-tipo="comunes" data-pack="1">Unidad</button>
-
               <button class="emp-btn" type="button" data-action="emp-open" data-tipo="comunes" data-pack="6">½ Docena</button>
-
               <button class="emp-btn" type="button" data-action="emp-open" data-tipo="comunes" data-pack="12">Docena</button>
-
             </div>
-
                       </div>
-
- 
 
           <div class="emp-card">
-
             <h3>Empanadas especiales</h3>
-
             <p class="muted">Verdura y Muzzarella, Choclo y Muzzarella, Roquefort y Jamón, Capresse, Calabresa</p>
-
             <div class="emp-actions">
-
               <button class="emp-btn" type="button" data-action="emp-open" data-tipo="especiales" data-pack="1">Unidad</button>
-
               <button class="emp-btn" type="button" data-action="emp-open" data-tipo="especiales" data-pack="6">½ Docena</button>
-
               <button class="emp-btn" type="button" data-action="emp-open" data-tipo="especiales" data-pack="12">Docena</button>
-
             </div>
-
                       </div>
-
         </div>
+  </div>
 
       </section>
 
- 
-
-      <section class="menu-section" data-section="tartas"><h2>Tartas</h2>
-
+      <section class="menu-section" data-section="tartas"><h2 class="cat-title cat-tartas">🥧 Tartas</h2>
+  <div class="menu-content">
         <div id="tartas"></div>
+  </div>
 
       </section>
-
- 
 
       <section class="menu-section" data-section="pastas">
-
-        <h2>Pastas</h2>
-
+        <h2 class="cat-title cat-pastas">🍝 Pastas</h2>
+  <div class="menu-content">
         <div id="pastas"></div>
+  </div>
 
       </section>
-
- 
 
       <section class="menu-section" data-section="minutas">
-
-        <h2>Minutas</h2>
-
+        <h2 class="cat-title cat-minutas">🍽️ Minutas</h2>
+  <div class="menu-content">
         <div id="minutas"></div>
+  </div>
 
       </section>
-
- 
 
       <section class="menu-section" data-section="bebidas">
-
-        <h2>Bebidas</h2>
-
+        <h2 class="cat-title cat-bebidas">🥤 Bebidas</h2>
+  <div class="menu-content">
         <div id="bebidas"></div>
+  </div>
 
       </section>
-
     </main>
 
- 
-
     <aside class="carrito">
-
       <h2>🛒 Tu Pedido</h2>
-
- 
 
       <div id="items-carrito"></div>
 
- 
-
       <h3>
-
         Total:
-
         $<span id="total">0</span>
-
       </h3>
-
- 
 
       <button class="emp-btn secondary" type="button" data-action="vaciar-carrito">Vaciar carrito</button>
 
- 
-
       <hr />
 
- 
-
       <label>Nombre</label>
-
       <input type="text" id="nombre" maxlength="20" />
 
- 
-
       <label>Dirección</label>
-
       <input type="text" id="direccion" placeholder="Ej: Calle 123, Villa Club" />
 
- 
-
       <label>Horario aproximado</label>
-
       <label class="addon" style="margin-top:6px;">
-
         <input type="checkbox" id="horario-asap" checked />
-
         Lo antes posible
-
       </label>
 
- 
-
       <div id="horario-time-wrap" style="margin-top:8px;">
-
         <select id="horario-select" class="half-select">
-
-          <option value="">-- Elegir horario --</option>
-
-          <option value="20:00">20:00</option>
-
-          <option value="20:10">20:10</option>
-
-          <option value="20:20">20:20</option>
-
-          <option value="20:30">20:30</option>
-
-          <option value="20:40">20:40</option>
-
-          <option value="20:50">20:50</option>
-
-          <option value="21:00">21:00</option>
-
-          <option value="21:10">21:10</option>
-
-          <option value="21:20">21:20</option>
-
-          <option value="21:30">21:30</option>
-
-          <option value="21:40">21:40</option>
-
-          <option value="21:50">21:50</option>
-
-          <option value="22:00">22:00</option>
-
-        </select>
-
+            <option value="">-- Elegir horario --</option>
+            <option value="20:00">20:00</option>
+            <option value="20:10">20:10</option>
+            <option value="20:20">20:20</option>
+            <option value="20:30">20:30</option>
+            <option value="20:40">20:40</option>
+            <option value="20:50">20:50</option>
+            <option value="21:00">21:00</option>
+            <option value="21:10">21:10</option>
+            <option value="21:20">21:20</option>
+            <option value="21:30">21:30</option>
+            <option value="21:40">21:40</option>
+            <option value="21:50">21:50</option>
+            <option value="22:00">22:00</option>
+          </select>
       </div>
-
       <div id="direccion-status" class="muted"></div>
-
- 
 
       <label>Forma de Pago</label>
 
- 
-
       <div>
-
         <input type="radio" name="pago" value="Efectivo" />
-
         Efectivo
-
       </div>
-
- 
 
       <div>
-
         <input type="radio" name="pago" value="Transferencia" />
-
         Transferencia
-
       </div>
-
- 
 
       <div id="transferencia-warning" class="muted" style="display:none; margin-top:6px;">Recuerde enviar el comprobante de transferencia junto con su pedido</div>
 
- 
-
       <div>
-
       </div>
-
- 
 
       <div class="alias-box">
-
         Alias: <strong id="alias-text">cabala.sana.sabe.mp</strong>
-
         <button class="emp-btn secondary" type="button" style="margin-top:8px; width:100%;" data-action="copy-alias">Copiar alias</button>
-
         <div id="alias-copiado" class="muted" style="display:none; margin-top:6px;">Alias copiado</div>
-
       </div>
-
- 
 
       <button type="button" data-action="send-wa">Enviar Pedido</button>
-
     </aside>
-
   </div>
-
- 
 
   <!-- Modal empanadas -->
-
   <div id="emp-modal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
-
     <div class="modal-backdrop" data-action="emp-close"></div>
-
     <div class="modal-content">
-
       <div class="modal-header">
-
         <h3 id="emp-modal-title">Empanadas</h3>
-
         <button class="modal-close" type="button" data-action="emp-close">×</button>
-
       </div>
 
- 
-
       <div class="modal-body">
-
         <p class="muted" id="emp-modal-subtitle"></p>
-
         <div id="emp-modal-list" class="emp-list"></div>
 
- 
-
         <div class="emp-summary">
-
           <div>
-
             <strong>Seleccionadas:</strong>
-
             <span id="emp-count">0</span>/<span id="emp-max">0</span>
-
           </div>
-
           <div>
-
             <strong>Precio:</strong>
-
             $<span id="emp-price">0</span>
-
           </div>
-
         </div>
-
- 
 
         <div class="emp-footer">
-
           <button class="emp-btn secondary" type="button" data-action="emp-clear">Limpiar</button>
-
           <button class="emp-btn" type="button" data-action="emp-confirm">Agregar al carrito</button>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
 
- 
 
- 
+  
 
- 
 
- 
 
- 
-
- 
-
- 
 
   <!-- Modal Manaos -->
-
   <div id="man-modal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
-
     <div class="modal-backdrop" data-action="manaos-close"></div>
-
     <div class="modal-content">
-
       <div class="modal-header">
-
         <h3>Manaos 2.25L</h3>
-
         <button class="modal-close" type="button" data-action="manaos-close">×</button>
-
       </div>
-
       <div class="modal-body">
-
         <p class="muted">Elegí el gusto:</p>
-
         <div class="emp-actions" style="margin-top:10px;">
-
           <button class="emp-btn" type="button" data-action="manaos-confirm" data-sabor="Cola">Cola</button>
-
           <button class="emp-btn" type="button" data-action="manaos-confirm" data-sabor="Lima-limón">Lima-limón</button>
-
           <button class="emp-btn" type="button" data-action="manaos-confirm" data-sabor="Pomelo">Pomelo</button>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
 
- 
-
- 
-
- 
+  
 
   <!-- Modal pizza mitad y mitad -->
-
   <div id="half-modal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
-
     <div class="modal-backdrop" data-action="half-close"></div>
-
     <div class="modal-content">
-
       <div class="modal-header">
-
         <h3>Pizza Mitad y Mitad</h3>
-
         <button class="modal-close" type="button" data-action="half-close">×</button>
-
       </div>
-
       <div class="modal-body">
-
         <p class="muted">Elegí 2 mitades. El precio final es la suma de cada mitad (precio de pizza / 2).</p>
 
- 
-
         <div class="half-grid">
-
           <div>
-
             <label>Mitad 1</label>
-
             <select id="half-1" class="half-select"></select>
-
           </div>
-
           <div>
-
             <label>Mitad 2</label>
-
             <select id="half-2" class="half-select"></select>
-
           </div>
-
         </div>
-
- 
 
         <div class="emp-summary" style="margin-top:12px;">
-
           <div><strong>Total:</strong></div>
-
           <div>$<span id="half-price">0</span></div>
-
         </div>
-
- 
 
         <div class="emp-footer">
-
           <button class="emp-btn secondary" type="button" data-action="half-clear">Limpiar</button>
-
           <button class="emp-btn" type="button" data-action="half-confirm">Agregar al carrito</button>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
 
- 
-
- 
 
   <!-- Modal sandwich promo (carne/pollo + extras) -->
-
   <div id="sand-modal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
-
     <div class="modal-backdrop" data-action="sand-close"></div>
-
     <div class="modal-content">
-
       <div class="modal-header">
-
         <h3 id="sand-title">Sandwich de Milanesa</h3>
-
         <button class="modal-close" type="button" data-action="sand-close">×</button>
-
       </div>
-
       <div class="modal-body">
-
         <p class="muted">Sandwirch de Carne o Pollo y agregá extras opcionales.</p>
 
- 
-
         <label>Tipo</label>
-
         <div class="emp-actions" id="sand-meats">
-
           <button class="emp-btn" type="button" data-action="sand-meat" data-meat="Carne">Carne</button>
-
           <button class="emp-btn" type="button" data-action="sand-meat" data-meat="Pollo">Pollo</button>
-
         </div>
-
         <div class="muted" id="sand-meat-selected" style="margin-top:6px;"></div>
 
- 
-
         <div style="margin-top:12px;">
-
           <label class="addon">
-
             <input type="checkbox" id="sand-extra-lt" data-role="sand-extra" data-extra="lt">
-
             Lechuga y tomate (+$3.000)
-
           </label>
-
           <label class="addon">
-
             <input type="checkbox" id="sand-extra-jq" data-role="sand-extra" data-extra="jq">
-
             Jamón y queso (+$3.000)
-
           </label>
-
         </div>
-
- 
 
         <div class="emp-summary" style="margin-top:12px;">
-
           <div><strong>Total:</strong></div>
-
           <div>$<span id="sand-price">0</span></div>
-
         </div>
-
- 
 
         <div class="emp-footer">
-
           <button class="emp-btn secondary" type="button" data-action="sand-clear">Limpiar</button>
-
           <button class="emp-btn" type="button" data-action="sand-confirm">Agregar al carrito</button>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
 
- 
-
- 
-
- 
+  
 
   <!-- Modal promo 2 sandwiches LT (carne/pollo) -->
-
   <div id="sand2-modal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
-
     <div class="modal-backdrop" data-action="sand2-close"></div>
-
     <div class="modal-content">
-
       <div class="modal-header">
-
         <h3>Promo: 2 Sandwiches (Lechuga y Tomate)</h3>
-
         <button class="modal-close" type="button" data-action="sand2-close">×</button>
-
       </div>
-
       <div class="modal-body">
-
         <p class="muted">Elegí si son de Carne o de Pollo. Incluye lechuga y tomate.</p>
 
- 
-
         <label>Tipo</label>
-
         <div class="emp-actions">
-
           <button class="emp-btn" type="button" data-action="sand2-meat" data-meat="Carne">Carne</button>
-
           <button class="emp-btn" type="button" data-action="sand2-meat" data-meat="Pollo">Pollo</button>
-
         </div>
-
         <div class="muted" id="sand2-meat-selected" style="margin-top:6px;"></div>
 
- 
-
         <div class="emp-summary" style="margin-top:12px;">
-
           <div><strong>Total:</strong></div>
-
           <div>$<span id="sand2-price">24.000</span></div>
-
         </div>
-
- 
 
         <div class="emp-footer">
-
           <button class="emp-btn secondary" type="button" data-action="sand2-clear">Limpiar</button>
-
           <button class="emp-btn" type="button" data-action="sand2-confirm">Agregar al carrito</button>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
 
- 
-
   <script src="menu.js"></script>
-
   <script src="script.js"></script>
-
 </body>
-
 </html>

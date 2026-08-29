@@ -5,6 +5,65 @@ const CONFIG = {
   googleGeocodeRegion: "AR"
 };
 
+
+
+// ================= HORARIOS =================
+// Pedido: Martes a Domingo 18:00–22:00 (hora local del navegador)
+function isOrderingOpen(date = new Date()){
+  const day = date.getDay(); // 0=Dom,1=Lun,...
+  const mins = date.getHours() * 60 + date.getMinutes();
+  const open = 18 * 60;
+  const close = 22 * 60;
+  const isAllowedDay = day !== 1; // lunes cerrado
+  const isAllowedTime = mins >= open && mins <= close;
+  return isAllowedDay && isAllowedTime;
+}
+
+function updateSendButtonAvailability(){
+  const btn = document.querySelector('button[data-action="send-wa"]');
+  if (!btn) return;
+  const open = isOrderingOpen();
+  btn.disabled = !open;
+  btn.title = open ? '' : 'Fuera de horario de pedido (Mar-Dom 18:00–22:00)';
+  // opcional: feedback visual
+  if (!open) btn.classList.add('disabled');
+  else btn.classList.remove('disabled');
+}
+
+function setSectionCollapsed(sectionEl, collapsed){
+  if (!sectionEl) return;
+  if (collapsed) sectionEl.classList.add('is-collapsed');
+  else sectionEl.classList.remove('is-collapsed');
+}
+
+function initAccordion(){
+  const sections = Array.from(document.querySelectorAll('section.menu-section[data-section]'));
+  if (!sections.length) return;
+
+  // Estado inicial: Promociones abierto, resto colapsado
+  sections.forEach((sec) => {
+    const key = sec.getAttribute('data-section') || '';
+    setSectionCollapsed(sec, key !== 'promociones');
+  });
+
+  // Toggle al click en h2
+  sections.forEach((sec) => {
+    const h2 = sec.querySelector('h2');
+    if (!h2) return;
+    h2.addEventListener('click', () => {
+      sec.classList.toggle('is-collapsed');
+    });
+  });
+
+  // Botones Abrir/Cerrar todo
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="toggle-all-open"], [data-action="toggle-all-close"]');
+    if (!btn) return;
+    const openAll = btn.dataset.action === 'toggle-all-open';
+    sections.forEach((sec) => setSectionCollapsed(sec, !openAll));
+  });
+}
+
 // ================= DATA =================
 let menu = null; // se carga desde menu.json
 
@@ -16,6 +75,19 @@ async function loadMenu() {
     const fromGlobal = globalThis?.LDVG_MENU;
     if (fromGlobal && typeof fromGlobal === 'object') {
       menu = fromGlobal;
+
+      // Override del Panel Admin (localStorage)
+      try {
+        const raw = localStorage.getItem('LDVG_MENU_OVERRIDE_V1');
+        if (raw) {
+          const over = JSON.parse(raw);
+          if (over && typeof over === 'object') {
+            menu = over;
+          }
+        }
+      } catch (e2) {
+        // ignore
+      }
       return menu;
     }
   } catch (e) {
@@ -27,6 +99,20 @@ async function loadMenu() {
     const resp = await fetch('menu.json', { cache: 'no-store' });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     menu = await resp.json();
+
+    // Override del Panel Admin (localStorage)
+    try {
+      const raw = localStorage.getItem('LDVG_MENU_OVERRIDE_V1');
+      if (raw) {
+        const over = JSON.parse(raw);
+        if (over && typeof over === 'object') {
+          menu = over;
+        }
+      }
+    } catch (e2) {
+      // ignore
+    }
+
     return menu;
   } catch (e) {
     console.warn('No se pudo cargar menu.json, usando fallback vacío', e);
@@ -50,6 +136,26 @@ const EMPANADAS = {
     sabores: ["Verdura y Muzzarella", "Choclo y Muzzarella", "Roquefort y Jamón", "Capresse", "Calabresa"]
   }
 };
+
+// Override precios de empanadas (Panel Admin)
+try {
+  const rawEmp = localStorage.getItem('LDVG_EMP_PRICES_V1');
+  if (rawEmp) {
+    const emp = JSON.parse(rawEmp);
+    if (emp && typeof emp === 'object') {
+      if (emp?.comunes?.unit != null) EMPANADAS.comunes.precios.unit = Number(emp.comunes.unit);
+      if (emp?.comunes?.half != null) EMPANADAS.comunes.precios.half = Number(emp.comunes.half);
+      if (emp?.comunes?.dozen != null) EMPANADAS.comunes.precios.dozen = Number(emp.comunes.dozen);
+
+      if (emp?.especiales?.unit != null) EMPANADAS.especiales.precios.unit = Number(emp.especiales.unit);
+      if (emp?.especiales?.half != null) EMPANADAS.especiales.precios.half = Number(emp.especiales.half);
+      if (emp?.especiales?.dozen != null) EMPANADAS.especiales.precios.dozen = Number(emp.especiales.dozen);
+    }
+  }
+} catch (e) {
+  // ignore
+}
+
 
 // ================= STATE =================
 const carrito = {}; // key -> {tipo, nombre, detalle?, cantidad, precio}
@@ -188,6 +294,14 @@ function empKey(s) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
+
+function normSearch(s){
+  const str = String(s || '').toLowerCase();
+  // normalize() puede no existir en navegadores muy viejos
+  if (!String.prototype.normalize) return str;
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 // ================= RENDER PRODUCTOS (no empanadas) =================
 function renderProductos(idCategoria, productos) {
   const cont = document.getElementById(idCategoria);
@@ -329,13 +443,18 @@ function sumarProducto(key, precio, nombreVisible, detalleOpt) {
   actualizarQty(key);
 }
 
-function sumarProductoConAddon(baseKey, precioBase, nombreVisible, addonLabel, addonPrice) {
+function sumarProductoConAddon(baseKey, precioBase, nombreVisible, addonLabel, addonPrice, descOpt) {
   const cb = addonEls.get(baseKey) || null;
   const addonOn = cb ? !!cb.checked : false;
 
   const variantKey = addonOn ? `${baseKey}::ADDON` : `${baseKey}::BASE`;
   const precio = Number(precioBase) + (addonOn ? Number(addonPrice || 0) : 0);
-  const detalle = addonOn ? String(addonLabel || "") : "";
+
+  const lines = [];
+  const desc = String(descOpt || '').trim();
+  if (desc) lines.push(desc);
+  if (addonOn) lines.push(String(addonLabel || ""));
+  const detalle = lines.join("\n");
 
   if (!carrito[variantKey]) {
     carrito[variantKey] = {
@@ -1093,39 +1212,48 @@ function contarEmpanadasUnitEnCarrito() {
 
 // ================= BUSCADOR POR SECCIONES =================
 function aplicarFiltro(filtroRaw) {
-  const filtro = (filtroRaw || "").trim().toLowerCase();
-  const sections = document.querySelectorAll(".menu-section");
+  const filtro = normSearch((filtroRaw || '').trim());
+  const sections = document.querySelectorAll('.menu-section');
 
   // Productos renderizados (excluye empanadas que es sección especial)
-  const prods = document.querySelectorAll(".producto");
+  const prods = document.querySelectorAll('.producto');
 
   if (!filtro) {
-    prods.forEach((p) => (p.style.display = "flex"));
-    sections.forEach((s) => (s.style.display = "block"));
+    prods.forEach((p) => (p.style.display = 'flex'));
+    sections.forEach((s) => {
+      s.style.display = 'block';
+    });
     return;
   }
 
   // Filtrar productos usando dataset.search (nombre+desc+categ)
   prods.forEach((prod) => {
-    const text = (prod.dataset.search || prod.innerText || "").toLowerCase();
-    prod.style.display = text.includes(filtro) ? "flex" : "none";
+    const text = normSearch(prod.dataset.search || prod.innerText || '');
+    prod.style.display = text.includes(filtro) ? 'flex' : 'none';
   });
 
-  // Ocultar secciones sin resultados
+  // Ocultar secciones sin resultados + expandir las que sí tienen
   sections.forEach((section) => {
     const sec = section.dataset.section;
 
-    if (sec === "empanadas") {
+    if (sec === 'empanadas') {
       // sección especial (no tiene .producto dentro)
-      const showEmp = filtro.includes("emp") || filtro.includes("empan") || filtro.includes("🥟");
-      section.style.display = showEmp ? "block" : "none";
+      const showEmp = filtro.includes('emp') || filtro.includes('empan') || filtro.includes('🥟');
+      section.style.display = showEmp ? 'block' : 'none';
+      if (showEmp) setSectionCollapsed(section, false);
       return;
     }
 
     const visibles = section.querySelectorAll('.producto:not([style*="display: none"])');
-    section.style.display = visibles.length > 0 ? "block" : "none";
+    const has = visibles.length > 0;
+    section.style.display = has ? 'block' : 'none';
+
+    if (has) {
+      setSectionCollapsed(section, false);
+    }
   });
 }
+
 
 // ================= INIT =================
 
@@ -1150,12 +1278,12 @@ function bindUI() {
         if (!prodRow || !baseKey) return;
         const precio = Number(prodRow.dataset.precio || 0);
         const nombre = String(prodRow.dataset.nombre || '');
+        const det = String(prodRow.dataset.desc || "").trim();
         const addonLabel = prodRow.dataset.addonLabel;
         const addonPrice = prodRow.dataset.addonPrice;
         if (addonLabel && addonPrice != null) {
-          return sumarProductoConAddon(baseKey, precio, nombre, addonLabel, Number(addonPrice || 0));
+          return sumarProductoConAddon(baseKey, precio, nombre, addonLabel, Number(addonPrice || 0), det || null);
         }
-        const det = String(prodRow.dataset.desc || "").trim();
         return sumarProducto(baseKey, precio, nombre, det || null);
       }
       case 'prod-minus': {
@@ -1300,6 +1428,29 @@ function bindUI() {
 }
 
 async function init() {
+  // Horario de pedidos: Martes a Domingo 18:00 a 22:00 (usa hora local del navegador)
+  try {
+    const now = new Date();
+    const day = now.getDay(); // 0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const open = 18 * 60;
+    const close = 22 * 60;
+
+    const isAllowedDay = day !== 1; // cerrado lunes
+    const isAllowedTime = mins >= open && mins <= close;
+    const isOpen = isAllowedDay && isAllowedTime;
+
+    if (!isOpen) {
+      const ok = confirm('Ups! En este momento estamos cerrado. Desea continuar viendo el menú?');
+      if (!ok) return;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  updateSendButtonAvailability();
+
+
   await loadMenu();
   bindUI();
 
@@ -1310,6 +1461,8 @@ async function init() {
   renderProductos("minutas", menu.minutas);
   renderProductos("bebidas", menu.bebidas);
   renderProductos("promociones", menu.promociones);
+
+  initAccordion();
 
   loadCartFromStorage();
   actualizarCarrito();
@@ -1428,16 +1581,22 @@ function getHorarioLine() {
   const t = (timeInput?.value || '').trim();
   if (!t) return 'Lo antes posible';
 
-  // Validación simple de rango 19:00–22:00
+  // Validación simple de rango 20:00–22:00
   const [hh, mm] = t.split(':').map((x) => Number(x));
   if (Number.isNaN(hh) || Number.isNaN(mm)) return 'Lo antes posible';
   const mins = hh * 60 + mm;
-  if (mins < 19 * 60 || mins > 22 * 60) return 'Lo antes posible';
+  if (mins < 20 * 60 || mins > 22 * 60) return 'Lo antes posible';
 
   return t;
 }
 
 async function enviarWhatsApp() {
+  if (!isOrderingOpen()) {
+    alert('Fuera de horario de pedido. Atendemos de Martes a Domingo de 18:00 a 22:00.');
+    updateSendButtonAvailability();
+    return;
+  }
+
   const nombre = document.getElementById("nombre")?.value?.trim() || "";
   const direccion = document.getElementById("direccion")?.value?.trim() || "";
   const horarioLine = getHorarioLine();
