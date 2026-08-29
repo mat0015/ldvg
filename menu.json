@@ -51,6 +51,21 @@
       "descripcion": "Muzzarella / jamón / rodajas de ananá"
     },
     {
+      "nombre": "Huevo duro",
+      "precio": 17000,
+      "descripcion": "Muzzarella / huevo duro rallado / jamóm"
+    },
+    {
+      "nombre": "Cochina (Jamón)",
+      "precio": 22000,
+      "descripcion": "Muzzarella / Jamón / Papas fritas / Huevos fritas"
+    },
+    {
+      "nombre": "Cochina (Salchichas)",
+      "precio": 22000,
+      "descripcion": "Muzzarella / Jamón / Papas fritas / Huevos fritas"
+    },
+    {
       "nombre": "Pizza Mitad y Mitad",
       "precio": 0,
       "descripcion": "Elegí 2 mitades y armala como quieras (precio = suma de mitades)",
