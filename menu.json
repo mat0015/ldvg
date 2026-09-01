@@ -2,67 +2,67 @@
   "pizzas": [
     {
       "nombre": "Muzzarella",
-      "precio": 10500,
+      "precio": 11000,
       "descripcion": "Abundante muzzarella"
     },
     {
       "nombre": "Fugazza",
-      "precio": 15000,
+      "precio": 16000,
       "descripcion": "Muzzarella / cebolla cocida cortada en juliana"
     },
     {
       "nombre": "Jamón Cocido",
-      "precio": 16500,
+      "precio": 17000,
       "descripcion": "Muzzarella / jamón"
     },
     {
       "nombre": "Jamón y Morrones",
-      "precio": 18000,
+      "precio": 19000,
       "descripcion": "Muzzarella / jamón / morrones"
     },
     {
       "nombre": "Napolitana",
-      "precio": 18000,
+      "precio": 19000,
       "descripcion": "Muzzarella / jamón / rodajas de tomate / albahaca"
     },
     {
       "nombre": "Calabresa",
-      "precio": 17000,
+      "precio": 18000,
       "descripcion": "Muzzarella / longaniza / pimentón"
     },
     {
       "nombre": "Roquefort",
-      "precio": 19000,
+      "precio": 20000,
       "descripcion": "Muzzarella / roquefort / tiritas de jamón"
     },
     {
       "nombre": "Jamón Crudo y Rúcula",
-      "precio": 22000,
+      "precio": 23000,
       "descripcion": "Muzzarella / jamón crudo / rúcula"
     },
     {
       "nombre": "Anchoas",
-      "precio": 21000,
+      "precio": 22000,
       "descripcion": "Muzzarella / anchoas"
     },
     {
       "nombre": "Ananá",
-      "precio": 22000,
+      "precio": 23000,
       "descripcion": "Muzzarella / jamón / rodajas de ananá"
     },
     {
       "nombre": "Huevo duro",
-      "precio": 17000,
+      "precio": 18000,
       "descripcion": "Muzzarella / huevo duro rallado / jamóm"
     },
     {
       "nombre": "Cochina (Jamón)",
-      "precio": 22000,
+      "precio": 23000,
       "descripcion": "Muzzarella / Jamón / Papas fritas / Huevos fritas"
     },
     {
       "nombre": "Cochina (Salchichas)",
-      "precio": 22000,
+      "precio": 23000,
       "descripcion": "Muzzarella / Jamón / Papas fritas / Huevos fritas"
     },
     {
@@ -148,8 +148,13 @@
       }
     },
     {
+      "nombre": "Tortilla de papa",
+      "precio": 15000,
+      "descripcion": "Sin cebolla / con cebolla"
+    },
+    {
       "nombre": "Papas Medianas",
-      "precio": 7000,
+      "precio": 8000,
       "descripcion": "Porción mediana",
       "addon": {
         "label": "Cheddar y verdeo",
@@ -158,7 +163,7 @@
     },
     {
       "nombre": "Papas Grandes",
-      "precio": 10000,
+      "precio": 11000,
       "descripcion": "Porción grande",
       "addon": {
         "label": "Cheddar y verdeo",
@@ -184,7 +189,7 @@
     },
     {
       "nombre": "Manaos",
-      "precio": 2100,
+      "precio": 2200,
       "descripcion": "2.25L",
       "config": {
         "type": "manaos",
@@ -199,32 +204,32 @@
   "promociones": [
     {
       "nombre": "PROMO 1",
-      "precio": 23000,
+      "precio": 24000,
       "descripcion": "1 Muzzarella + 1 Fugazza"
     },
     {
       "nombre": "PROMO 2",
-      "precio": 26000,
+      "precio": 27000,
       "descripcion": "1 Muzzarella + 1 Jamón y Morrones"
     },
     {
       "nombre": "PROMO 3",
-      "precio": 26000,
+      "precio": 27000,
       "descripcion": "1 Muzzarella + 1 Napolitana"
     },
     {
       "nombre": "PROMO 4",
-      "precio": 30000,
+      "precio": 31000,
       "descripcion": "1 Muzzarella + 1 Cochina"
     },
     {
       "nombre": "PROMO 5",
-      "precio": 19000,
+      "precio": 20000,
       "descripcion": "1 Muzzarella + 6 Empanadas surtidas (Jamón y Carne)"
     },
     {
       "nombre": "PROMO 6",
-      "precio": 20000,
+      "precio": 21000,
       "descripcion": "2 Muzzarellas"
     },
     {
