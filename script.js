@@ -127,12 +127,12 @@ const EMP_RULE_MAX_UNIT = 12;
 const EMPANADAS = {
   comunes: {
     label: "comunes",
-    precios: { unit: 1700, half: 10500, dozen: 20000 },
+    precios: { unit: 1800, half: 11000, dozen: 21000 },
     sabores: ["Carne", "Pollo", "Jamón y Muzzarella"]
   },
   especiales: {
     label: "especiales",
-    precios: { unit: 1900, half: 11000, dozen: 22000 },
+    precios: { unit: 2000, half: 12000, dozen: 23000 },
     sabores: ["Verdura y Muzzarella", "Choclo y Muzzarella", "Roquefort y Jamón", "Capresse", "Calabresa"]
   }
 };
