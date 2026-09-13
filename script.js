@@ -1,20 +1,20 @@
 // ================= CONFIG =================
 const CONFIG = {
   whatsappPhone: "5491123219676", // sin + ni espacios
-  googleMapsApiKey: "AIzaSyBf2chcItaW_O6uhYxpN1f7Ok6RttX2ztI", // <-- pegá tu API KEY acá
+  googleMapsApiKey: "", // <-- pegá tu API KEY acá
   googleGeocodeRegion: "AR"
 };
 
 
 
 // ================= HORARIOS =================
-// Pedido: Martes a Domingo 18:00–22:00 (hora local del navegador)
+// Pedido: Lunes a Domingo 18:00–22:00 (hora local del navegador)
 function isOrderingOpen(date = new Date()){
   const day = date.getDay(); // 0=Dom,1=Lun,...
   const mins = date.getHours() * 60 + date.getMinutes();
   const open = 18 * 60;
   const close = 22 * 60;
-  const isAllowedDay = day !== 1; // lunes cerrado
+  const isAllowedDay = true; // abierto todos los dias
   const isAllowedTime = mins >= open && mins <= close;
   return isAllowedDay && isAllowedTime;
 }
@@ -24,7 +24,7 @@ function updateSendButtonAvailability(){
   if (!btn) return;
   const open = isOrderingOpen();
   btn.disabled = !open;
-  btn.title = open ? '' : 'Fuera de horario de pedido (Mar-Dom 18:00–22:00)';
+  btn.title = open ? '' : 'Fuera de horario de pedido (Lun-Dom 18:00–22:00)';
   // opcional: feedback visual
   if (!open) btn.classList.add('disabled');
   else btn.classList.remove('disabled');
