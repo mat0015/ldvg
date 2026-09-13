@@ -1,7 +1,7 @@
 // ================= CONFIG =================
 const CONFIG = {
   whatsappPhone: "5491123219676", // sin + ni espacios
-  googleMapsApiKey: "", // <-- pegá tu API KEY acá
+  googleMapsApiKey: "AIzaSyBf2chcItaW_O6uhYxpN1f7Ok6RttX2ztI", // <-- pegá tu API KEY acá
   googleGeocodeRegion: "AR"
 };
 
