@@ -1428,7 +1428,7 @@ function bindUI() {
 }
 
 async function init() {
-  // Horario de pedidos: Martes a Domingo 18:00 a 22:00 (usa hora local del navegador)
+  // Horario de pedidos: Lunes a Domingo 18:00 a 22:00 (usa hora local del navegador)
   try {
     const now = new Date();
     const day = now.getDay(); // 0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab
@@ -1436,7 +1436,7 @@ async function init() {
     const open = 18 * 60;
     const close = 22 * 60;
 
-    const isAllowedDay = day !== 1; // cerrado lunes
+    const isAllowedDay = true; // abierto todos los dias
     const isAllowedTime = mins >= open && mins <= close;
     const isOpen = isAllowedDay && isAllowedTime;
 
@@ -1592,7 +1592,7 @@ function getHorarioLine() {
 
 async function enviarWhatsApp() {
   if (!isOrderingOpen()) {
-    alert('Fuera de horario de pedido. Atendemos de Martes a Domingo de 18:00 a 22:00.');
+    alert('Fuera de horario de pedido. Atendemos de Lunes a Domingo de 18:00 a 22:00.');
     updateSendButtonAvailability();
     return;
   }
