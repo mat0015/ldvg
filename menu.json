@@ -31,6 +31,11 @@
       "descripcion": "Muzzarella / longaniza / pimentón"
     },
     {
+      "nombre": "Provolone",
+      "precio": 20000,
+      "descripcion": "Muzzarella / Provolone"
+    },
+    {
       "nombre": "Roquefort",
       "precio": 20000,
       "descripcion": "Muzzarella / roquefort / tiritas de jamón"
@@ -57,11 +62,6 @@
     },
     {
       "nombre": "Cochina (Jamón)",
-      "precio": 23000,
-      "descripcion": "Muzzarella / Jamón / Papas fritas / Huevos fritas"
-    },
-    {
-      "nombre": "Cochina (Salchichas)",
       "precio": 23000,
       "descripcion": "Muzzarella / Jamón / Papas fritas / Huevos fritas"
     },
@@ -130,22 +130,24 @@
       "descripcion": "Hamburguesa Unión Ganadera 120 grs: jamón, queso, lechuga, tomate, huevo frito y papas fritas."
     },
     {
-      "nombre": "Milanesa Napolitana (Pollo)",
-      "precio": 19000,
-      "descripcion": "Elegí guarnición: fritas o ensalada mixta",
-      "config": {
-        "type": "milanesa",
-        "carne": "Pollo"
-      }
+      "nombre": "Milanesa simple",
+      "precio": 17000,
+      "descripcion": "Milanesa de carne o pollo con fritas"
     },
     {
-      "nombre": "Milanesa Napolitana (Ternera)",
+      "nombre": "Milanesa a caballo",
+      "precio": 18000,
+      "descripcion": "Milanesa de carne o pollo con huevo frito con fritas"
+    },
+    {
+      "nombre": "Milanesa napolitana",
       "precio": 19000,
-      "descripcion": "Elegí guarnición: fritas o ensalada mixta",
-      "config": {
-        "type": "milanesa",
-        "carne": "Ternera"
-      }
+      "descripcion": "Milanesa de carne o pollo con salsa de tomate, jamón y muzzarella con fritas"
+    },
+    {
+      "nombre": "Milanesa jamon y queso",
+      "precio": 19000,
+      "descripcion": "Milanesa de carne o pollo con jamón y muzzarella con fritas"
     },
     {
       "nombre": "Tortilla de papa",
@@ -271,6 +273,11 @@
         "fixed": "Lechuga y tomate",
         "qty": 2
       }
+    },
+    {
+      "nombre": "PROMO 9",
+      "precio": 20000,
+      "descripcion": "2 hamburguesas con lechuga, tomate y queso con fritas"
     }
   ]
 }
