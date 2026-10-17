@@ -222,7 +222,7 @@ function escapeHtml(str) {
 
 async function copiarAlias() {
   const el = document.getElementById('alias-text');
-  const txt = (el ? el.textContent : 'cabala.sana.sabe.mp').trim();
+  const txt = (el ? el.textContent : 'lodeveroygeorge.mp').trim();
 
   const showOk = () => {
     const msg = document.getElementById('alias-copiado');
