@@ -6,6 +6,11 @@
       "descripcion": "Abundante muzzarella"
     },
     {
+      "nombre": "Muzzarella doble",
+      "precio": 14000,
+      "descripcion": "Abundante muzzarella doble"
+    },
+    {
       "nombre": "Fugazza",
       "precio": 16000,
       "descripcion": "Muzzarella / cebolla cocida cortada en juliana"
@@ -36,6 +41,11 @@
       "descripcion": "Muzzarella / Provolone"
     },
     {
+      "nombre": "Palmitos",
+      "precio": 22000,
+      "descripcion": "Muzzarella / jamón / palmitos / salsa golf"
+    },
+    {
       "nombre": "Roquefort",
       "precio": 20000,
       "descripcion": "Muzzarella / roquefort / tiritas de jamón"
@@ -61,9 +71,14 @@
       "descripcion": "Muzzarella / huevo duro rallado / jamóm"
     },
     {
-      "nombre": "Cochina (Jamón)",
+      "nombre": "Cochina",
       "precio": 23000,
       "descripcion": "Muzzarella / Jamón / Papas fritas / Huevos fritas"
+    },
+    {
+      "nombre": "Fainá",
+      "precio": 1500,
+      "descripcion": "Porción"
     },
     {
       "nombre": "Pizza Mitad y Mitad",
